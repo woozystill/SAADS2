@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
 	    'mock_localization = navigation_cil.mock_localization:main',
+	    'navigation_test = navigation_cil.navigation_test:main',
 	],
     },
 )
