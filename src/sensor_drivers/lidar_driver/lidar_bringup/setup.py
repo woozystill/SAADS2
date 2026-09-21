@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'lidar_driver'
+package_name = 'lidar_bringup'
 
 setup(
     name=package_name,
