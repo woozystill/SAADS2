@@ -6,8 +6,8 @@ from ultralytics import YOLO
 
 MODEL_PATH = "/workspace/saads_ws/yolo11n.pt"
 
-LEFT_CAMERA = "/dev/video1"
-RIGHT_CAMERA = "/dev/video3"
+LEFT_CAMERA = "/dev/video0"
+RIGHT_CAMERA = "/dev/video2"
 
 CAMERA_WIDTH = 1280
 CAMERA_HEIGHT = 720

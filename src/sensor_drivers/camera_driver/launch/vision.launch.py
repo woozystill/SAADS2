@@ -16,7 +16,7 @@ def generate_launch_description():
                 saads-vision-dev \
                 bash -lc "
                     cd /workspace/saads_ws/src/sensor_drivers/camera_driver/camera_driver &&
-                    python3 yolo_camera_test.py
+                    python3 yolo_dual_camera.py
                 "
             '''
         ],
