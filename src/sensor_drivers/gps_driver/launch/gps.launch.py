@@ -10,8 +10,8 @@ def generate_launch_description():
             name='gps_driver',
             output='screen',
             parameters=[{
-                'port': '/dev/ttyACM0',
-                'baud': 9600,
+                'port': '/dev/ttyACM1',
+                'baud': 115200,
                 'frame_id': 'gps_link',
             }],
             remappings=[('fix', '/gps/fix')],
