@@ -10,7 +10,7 @@ def generate_launch_description():
             name='gps_driver',
             output='screen',
             parameters=[{
-                'port': '/dev/ttyACM1',
+                'port': '/dev/ttyACM0',
                 'baud': 115200,
                 'frame_id': 'gps_link',
             }],

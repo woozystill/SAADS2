@@ -1,0 +1,32 @@
+bag                   localization_x1
+duration              145.4 s
+distance travelled    24.8 m
+
+RATES
+  GPS                 5.01 Hz   (728 fixes)
+  IMU                 50.2 Hz
+  global EKF          30.2 Hz
+  local EKF           30.2 Hz
+
+LOOP CLOSURE   (meaningful only if you returned to start)
+  raw GPS             16.55 m
+  global EKF          16.22 m
+  -> fused estimate closed tighter than raw GPS
+  local EKF           0.00 m   (expected to drift - no absolute reference)
+
+UNCERTAINTY
+  GPS reported        3.18 m mean, 2.76 - 3.60
+  global EKF          1.53 m mean, 1.33 - 1.75
+  -> filter is more confident than its own input, which is what fusing is for
+
+HEADING
+  segments used       3  (min move 5.0 m)
+  mean offset         +63.56 deg
+  rms about that      2.61 deg
+
+  CONSTANT OFFSET. The error does not depend on heading, so
+  it is a fixed mounting rotation plus declination. Put it
+  in the base_link -> imu_link static transform as a yaw
+  rotation - NOT in navsat_transform yaw_offset, which was
+  tested and rotates the map frame by its own value
+  regardless of the measured offset.

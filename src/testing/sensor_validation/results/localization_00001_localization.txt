@@ -1,0 +1,23 @@
+bag                   localization_00001
+duration              43.8 s
+distance travelled    6.3 m
+
+RATES
+  GPS                 5.02 Hz   (220 fixes)
+  IMU                 50.1 Hz
+  global EKF          30.1 Hz
+  local EKF           29.4 Hz
+
+LOOP CLOSURE   (meaningful only if you returned to start)
+  raw GPS             3.00 m
+  global EKF          2.94 m
+  -> fused estimate closed tighter than raw GPS
+  local EKF           0.00 m   (expected to drift - no absolute reference)
+
+UNCERTAINTY
+  GPS reported        3.09 m mean, 2.84 - 3.76
+  global EKF          1.51 m mean, 1.33 - 1.81
+  -> filter is more confident than its own input, which is what fusing is for
+
+HEADING
+  no usable segments - too little movement, or min-move set too high

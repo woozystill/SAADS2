@@ -1,0 +1,41 @@
+bag                 mag_circle_01
+samples             1443
+duration            28.8 s
+heading coverage    100% of a full turn
+
+CIRCLE FIT, horizontal plane
+  radius            23.61 uT      (local field strength)
+  centre            (-0.21, +1.36) uT
+  offset from zero  1.37 uT   <- HARD IRON
+  rms residual      1.66 uT
+
+ELLIPSE FIT
+  major / minor     1.066        <- SOFT IRON if >> 1
+  major axis at     +100 deg
+
+TOTAL FIELD
+  mean              31.68 uT
+  spread            2.35 uT
+  expected here     47.0 uT
+
+VERDICT
+  hard iron    SMALL - under 5 uT, nothing to chase
+  soft iron    SMALL - circle is round, no heading-dependent distortion
+  field        33% off the expected value - the field is not predominantly the Earth's
+
+WHAT THESE MEAN
+
+  Hard iron is a constant field added by something fixed to the
+  robot. It shifts the circle off the origin. The chip estimates
+  and removes it, so a moderate offset is not fatal - but it
+  tells you something magnetic is close.
+
+  Soft iron is ferrous material bending the field, which makes
+  the circle an ellipse and the heading error depend on which
+  way the robot faces. The chip corrects this too, provided it
+  calibrated in this configuration.
+
+  Neither is corrected by the yaw_offset parameter, and neither
+  is the same as motor interference - that varies with current,
+  so it appears as scatter rather than a shifted or stretched
+  circle, and no calibration removes it.

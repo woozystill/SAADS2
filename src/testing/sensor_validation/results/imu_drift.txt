@@ -1,0 +1,17 @@
+imu_drift
+2026-09-22T15:35:59
+============================================================
+samples          15050
+duration         301.0 s
+rate             50.00 Hz
+net change       +0.027 deg
+net rate         +0.0053 deg/min
+envelope         0.9250 deg (max - min)
+noise 1 sigma    0.1983 deg
+
+PASS
+
+An unfused gyro accumulates 1-10 deg/min without bound. A
+magnetometer-referenced fusion settles into a small envelope and
+stays there. The envelope figure is the meaningful one: it says
+the error is bounded, not that it is zero.

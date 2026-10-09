@@ -1,0 +1,31 @@
+bag                   jetson_rect_04
+duration              1690.0 s
+distance travelled    947.4 m
+
+RATES
+  GPS                 1.00 Hz   (1691 fixes)
+  IMU                 50.0 Hz
+  global EKF          30.0 Hz
+  local EKF           30.0 Hz
+
+LOOP CLOSURE   (meaningful only if you returned to start)
+  raw GPS             10.74 m
+  global EKF          10.71 m
+  -> fused estimate closed tighter than raw GPS
+  local EKF           0.00 m   (expected to drift - no absolute reference)
+
+UNCERTAINTY
+  GPS reported        4.08 m mean, 3.40 - 7.44
+  global EKF          3.33 m mean, 2.19 - 5.98
+  -> filter is more confident than its own input, which is what fusing is for
+
+HEADING
+  segments used       154  (min move 5.0 m)
+  mean offset         -89.82 deg
+  rms about that      111.47 deg
+
+  rms 111.5 deg is high. Either the offset varies with
+  heading - soft iron, which no single parameter corrects -
+  or segments spanning turns are inflating it. Check panel 3
+  for a sinusoid: a wave means distortion, scatter means
+  turning segments.

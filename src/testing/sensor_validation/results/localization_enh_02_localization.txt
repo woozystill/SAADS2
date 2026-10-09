@@ -1,0 +1,31 @@
+bag                   localization_enh_02
+duration              216.6 s
+distance travelled    225.8 m
+
+RATES
+  GPS                 5.00 Hz   (1084 fixes)
+  IMU                 50.1 Hz
+  global EKF          30.2 Hz
+  local EKF           30.2 Hz
+
+LOOP CLOSURE   (meaningful only if you returned to start)
+  raw GPS             0.72 m
+  global EKF          0.71 m
+  -> fused estimate closed tighter than raw GPS
+  local EKF           0.00 m   (expected to drift - no absolute reference)
+
+UNCERTAINTY
+  GPS reported        3.26 m mean, 2.80 - 5.44
+  global EKF          1.56 m mean, 1.35 - 2.02
+  -> filter is more confident than its own input, which is what fusing is for
+
+HEADING
+  segments used       43  (min move 5.0 m)
+  mean offset         +66.73 deg
+  rms about that      36.17 deg
+
+  rms 36.2 deg is high. Either the offset varies with
+  heading - soft iron, which no single parameter corrects -
+  or segments spanning turns are inflating it. Check panel 3
+  for a sinusoid: a wave means distortion, scatter means
+  turning segments.

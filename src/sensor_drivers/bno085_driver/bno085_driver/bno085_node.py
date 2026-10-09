@@ -37,6 +37,11 @@ Three things fix that, and all three are needed together:
                            of re-deriving. This is the part that stops
                            heading moving between power cycles.
 
+Settings live in the launch files, not here - the node defaults only
+apply to ros2 run. Three launch files: bno085.launch.py for normal
+running, bno085_calib_gyro.launch.py parked, bno085_calib_mag.launch.py
+rotating.
+
 Call the save service once, with the sensor in its final mounted
 position and the robot in its normal magnetic state:
 
@@ -76,6 +81,7 @@ from struct import unpack_from
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 from sensor_msgs.msg import Imu, MagneticField
 from std_srvs.srv import Trigger
 
@@ -93,6 +99,12 @@ from adafruit_bno08x.i2c import BNO08X_I2C
 # 8 bytes of quaternion, then a 2-byte accuracy estimate in radians
 # at Q-point 12. Adafruit's parser reads only the quaternion and
 # discards the accuracy, so we read it off the raw report ourselves.
+# Every input report carries a status byte at offset 2. Bits 1:0 are
+# the accuracy level - 0 unreliable, 1 low, 2 medium, 3 high. The
+# library reads it and keeps only the magnetometer's, discarding the
+# rest, so the hook below captures all four.
+_STATUS_OFFSET = 2
+_ACCURACY_MASK = 0b11
 _ROTATION_VECTOR_LEN = 14
 _ACCURACY_OFFSET = 12
 _Q_POINT_12 = 2 ** -12
@@ -119,8 +131,41 @@ class Bno085Node(Node):
         self.declare_parameter('enable_magnetometer', True)
         self.declare_parameter('mag_report_interval_us', 20000)
 
-        # Explicitly enable dynamic calibration at startup.
+        # Explicitly enable dynamic calibration at startup. The
+        # datasheet notes that calibration settings do NOT persist
+        # across a reset, so this has to be sent every boot even though
+        # accelerometer and magnetometer calibration are default-on.
         self.declare_parameter('dynamic_calibration', True)
+
+        # Which sensors to calibrate. The library's begin_calibration()
+        # turns on all three unconditionally, which is wrong for a
+        # ground robot.
+        #
+        # GYROSCOPE. The datasheet warns that zero-rate offset
+        # calibration needs "sufficient tremor such as the human hand",
+        # and that slow rotation about the gravity vector can fool it -
+        # which is what a robot driving a circle looks like. Tested on
+        # this hardware anyway: parked and still, the accuracy level
+        # climbed from 0 to 3, so it converges here. Left on, because
+        # gyroscope bias drifts with temperature and the odom EKF fuses
+        # yaw rate and nothing else.
+        #
+        # MAGNETOMETER, off. Not a datasheet concern - a measured one.
+        # A 947 m run with it enabled showed 84 degrees of heading drift
+        # across a single straight leg as the chip adjusted its model
+        # mid-run. The saved flash calibration is better than anything
+        # it re-derives while driving.
+        #
+        # ACCELEROMETER, on. Chip default, stable, and not fused anyway.
+        self.declare_parameter('calibrate_accelerometer', False)
+        self.declare_parameter('calibrate_gyroscope', False)
+        self.declare_parameter('calibrate_magnetometer', False)
+
+        # Planar accelerometer calibration, for devices constrained to
+        # move in a plane. The datasheet names robot vacuums; a ground
+        # rover is the same case. Leave false for the amphibious mode,
+        # where pitch and roll are real.
+        self.declare_parameter('planar_accelerometer', False)
 
         # Seconds between calibration accuracy log lines. 0 disables.
         self.declare_parameter('calibration_log_period', 15.0)
@@ -155,8 +200,14 @@ class Bno085Node(Node):
         # Fixed fallback, used when adaptive_covariance is off or no
         # accuracy information is available at all.
         self.declare_parameter('orientation_variance', 0.0019)
-        self.declare_parameter('angular_velocity_variance', 2.5e-5)
-        self.declare_parameter('linear_acceleration_variance', 2.5e-3)
+
+        # Measured, not assumed. From a 5.6 minute stationary recording
+        # with the sensor mounted on the robot - 16843 samples, worst
+        # axis of three in each case. The placeholder values these
+        # replaced were 8x and 5x too large, so the filter had been
+        # under-trusting the IMU by nearly an order of magnitude.
+        self.declare_parameter('angular_velocity_variance', 3.022e-06)
+        self.declare_parameter('linear_acceleration_variance', 4.844e-04)
 
         self.frame_id = self.get_parameter('frame_id').value
         rate_hz = self.get_parameter('publish_rate').value
@@ -182,6 +233,10 @@ class Bno085Node(Node):
         # Updated by the report hook below; None until the first
         # rotation vector report carrying a usable estimate arrives.
         self._heading_sigma = None
+        # Per-sensor accuracy level, keyed by report id. None until a
+        # report of that type arrives - a sensor whose report is not
+        # enabled never appears here.
+        self._accuracy = {}
         self.gyro_var = float(
             self.get_parameter('angular_velocity_variance').value)
         self.accel_var = float(
@@ -221,13 +276,7 @@ class Bno085Node(Node):
             self._install_accuracy_hook()
 
         if do_cal:
-            try:
-                self.sensor.begin_calibration()
-                self.get_logger().info(
-                    'Dynamic calibration enabled (accel, gyro, mag)')
-            except Exception as exc:
-                self.get_logger().warn(
-                    f'begin_calibration() failed: {exc}')
+            self._configure_calibration()
 
         qos = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -237,6 +286,12 @@ class Bno085Node(Node):
         self.publisher = self.create_publisher(Imu, 'imu/data', qos)
         self.mag_publisher = self.create_publisher(
             MagneticField, 'imu/mag', qos)
+        # Per-sensor accuracy levels, for the health dashboard. Its own
+        # topic rather than /diagnostics so it cannot collide with any
+        # other node publishing there.
+        self.diag_publisher = self.create_publisher(
+            DiagnosticArray, 'imu/diagnostics', 10)
+        self.create_timer(1.0, self.publish_diagnostics)
 
         self.timer = self.create_timer(1.0 / rate_hz, self.publish_reading)
 
@@ -259,6 +314,58 @@ class Bno085Node(Node):
             f'{rate_hz} Hz in frame {self.frame_id}')
 
     # ------------------------------------------------------------------
+    def _configure_calibration(self):
+        """Enable dynamic calibration per sensor.
+
+        The library's begin_calibration() sends 1/1/1 for accelerometer,
+        gyroscope and magnetometer with 3D accelerometer mode. That is
+        not the right choice on a wheeled robot, so this sends the same
+        ME_CAL_CONFIG command with the flags chosen by parameter.
+
+        Falls back to begin_calibration() if the library's internals
+        differ from what this expects.
+        """
+        accel = bool(self.get_parameter('calibrate_accelerometer').value)
+        gyro = bool(self.get_parameter('calibrate_gyroscope').value)
+        mag = bool(self.get_parameter('calibrate_magnetometer').value)
+        planar = bool(self.get_parameter('planar_accelerometer').value)
+
+        try:
+            from adafruit_bno08x import _ME_CAL_CONFIG
+            self.sensor._send_me_command([
+                int(accel),
+                int(gyro),
+                int(mag),
+                _ME_CAL_CONFIG,
+                int(planar),
+                0,          # 'on_table' calibration
+                0, 0, 0,    # reserved
+            ])
+            enabled = ', '.join(
+                n for n, on in (('accel', accel), ('gyro', gyro),
+                                ('mag', mag)) if on) or 'nothing'
+            self.get_logger().info(
+                f'Dynamic calibration enabled for: {enabled}'
+                + (' (planar accel)' if planar else ''))
+            if not gyro:
+                self.get_logger().info(
+                    'Gyroscope calibration OFF - bias will not be tracked, '
+                    'so a long run in changing temperature may drift')
+            if mag:
+                self.get_logger().warn(
+                    'Magnetometer calibration ON - the chip will adjust its '
+                    'model while driving, which has been measured to shift '
+                    'heading mid-run. Intended only while calibrating.')
+        except Exception as exc:
+            self.get_logger().warn(
+                f'Per-sensor calibration config failed ({exc}); falling '
+                f'back to begin_calibration() which enables all three')
+            try:
+                self.sensor.begin_calibration()
+            except Exception as exc2:
+                self.get_logger().warn(f'begin_calibration() failed: {exc2}')
+
+    # ------------------------------------------------------------------
     def _install_accuracy_hook(self):
         """Capture the per-reading heading accuracy the library discards.
 
@@ -271,6 +378,13 @@ class Bno085Node(Node):
         original = self.sensor._process_report
 
         def hooked(report_id, report_bytes):
+            if len(report_bytes) > _STATUS_OFFSET:
+                try:
+                    status = unpack_from('<B', report_bytes,
+                                         offset=_STATUS_OFFSET)[0]
+                    self._accuracy[report_id] = status & _ACCURACY_MASK
+                except Exception:
+                    pass
             if (report_id == BNO_REPORT_ROTATION_VECTOR
                     and len(report_bytes) >= _ROTATION_VECTOR_LEN):
                 try:
@@ -296,7 +410,70 @@ class Bno085Node(Node):
                 f'the accuracy-level mapping')
 
     def _orientation_variance(self):
-        """Heading variance to publish with this message, in rad^2."""
+        """Heading variance to publish with this message, in rad^2.
+
+        Two stages, and the order matters.
+
+        STAGE 1 - the magnetometer gate.
+        Measured on localization_enh_02: the chip rated its own
+        magnetometer 0 or 1 out of 3 for 102 of 216 seconds while
+        simultaneously reporting orientation accuracy 3/3 and a heading
+        sigma under 9 degrees. Its true heading error was ~104 degrees -
+        the fused yaw integrated +463.9 deg around a loop that
+        physically turned +360. The quaternion covariance does NOT
+        detect this failure. The per-sensor magnetometer accuracy does.
+
+        Below the gate the rotation vector is unreferenced gyroscope
+        integration, so heading goes out with a variance large enough
+        that robot_localization stops fusing it and coasts on GPS
+        course. This runs even when adaptive_cov is off, because it is a
+        safety interlock rather than an adaptation.
+
+        STAGE 2 - the chip\'s own per-reading heading accuracy, from the
+        two bytes at offset 12 of the rotation vector report, Q-point
+        12, which the Adafruit library discards.
+        """
+        # Declared on first use so this method stays self-contained.
+        # rclpy applies any launch-file override at declare time, so
+        # declaring late still honours the launch file.
+        if not hasattr(self, 'mag_gate'):
+            for _name, _default in (('mag_accuracy_gate', 2),
+                                    ('gated_orientation_variance', 1e3)):
+                try:
+                    self.declare_parameter(_name, _default)
+                except Exception:
+                    pass
+            self.mag_gate = int(
+                self.get_parameter('mag_accuracy_gate').value)
+            self.gated_var = float(
+                self.get_parameter('gated_orientation_variance').value)
+            self._mag_gated = False
+
+        # ---- stage 1: magnetometer gate ----
+        # getattr guards the case where the report hook has not fired
+        # yet; .get guards enable_magnetometer being false, in which
+        # case there is no level to gate on and the gate stays open.
+        mag_level = getattr(self, '_accuracy', {}).get(
+            BNO_REPORT_MAGNETOMETER)
+
+        if mag_level is not None and mag_level < self.mag_gate:
+            if not self._mag_gated:
+                self._mag_gated = True
+                self.get_logger().warn(
+                    f'Magnetometer accuracy {mag_level}/3 is below the '
+                    f'gate of {self.mag_gate}. Heading is unreferenced '
+                    f'gyro integration - publishing yaw variance '
+                    f'{self.gated_var:.0f} rad^2 so the EKF stops '
+                    f'fusing it.')
+            return self.gated_var
+
+        if self._mag_gated:
+            self._mag_gated = False
+            self.get_logger().info(
+                f'Magnetometer accuracy recovered to {mag_level}/3. '
+                f'Heading fusion re-enabled.')
+
+        # ---- stage 2: adaptive sigma ----
         if not self.adaptive_cov:
             return self.orient_var
 
@@ -314,6 +491,46 @@ class Bno085Node(Node):
         return max(sigma, self.min_sigma) ** 2
 
     # ------------------------------------------------------------------
+    def publish_diagnostics(self):
+        """Publish each sensor's own accuracy level, 0 to 3.
+
+        These are qualitative - the chip offers no per-sensor figure in
+        physical units for the accelerometer or gyroscope, only this
+        four-level scale. The heading accuracy estimate is separate and
+        is published as orientation_covariance.
+
+        A sensor whose report is not enabled never reports a level, so
+        it is listed as unavailable rather than guessed at. With
+        enable_magnetometer false - the runtime default - the
+        magnetometer row will read unavailable.
+        """
+        names = {
+            BNO_REPORT_ACCELEROMETER: 'accelerometer',
+            BNO_REPORT_GYROSCOPE: 'gyroscope',
+            BNO_REPORT_MAGNETOMETER: 'magnetometer',
+            BNO_REPORT_ROTATION_VECTOR: 'orientation',
+        }
+
+        msg = DiagnosticArray()
+        msg.header.stamp = self.get_clock().now().to_msg()
+
+        for report_id, name in names.items():
+            st = DiagnosticStatus(name=f'BNO085 {name}',
+                                  hardware_id='BNO085')
+            level = self._accuracy.get(report_id)
+            if level is None:
+                st.level = DiagnosticStatus.STALE
+                st.message = 'report not enabled'
+                st.values = [KeyValue(key='accuracy', value='-')]
+            else:
+                st.level = (DiagnosticStatus.OK if level >= 2
+                            else DiagnosticStatus.WARN)
+                st.message = f'{ACCURACY.get(level, level)} ({level}/3)'
+                st.values = [KeyValue(key='accuracy', value=str(level))]
+            msg.status.append(st)
+
+        self.diag_publisher.publish(msg)
+
     def log_accuracy(self):
         """Report the chip's own magnetometer calibration accuracy.
 

@@ -1,0 +1,50 @@
+source              imu_static_001
+samples             16843
+
+GYROSCOPE, rad/s
+  bias        x -0.000068  y -0.000047  z +0.000005
+  sigma       x 0.001056  y 0.001738  z 0.000984
+  variance    x 1.116e-06  y 3.022e-06  z 9.689e-07
+
+ACCELEROMETER, m/s^2
+  sigma       x 0.016872  y 0.022009  z 0.011581
+  variance    x 2.847e-04  y 4.844e-04  z 1.341e-04
+  magnitude   9.7585 m/s^2 (-0.49% of g)
+
+HEADING, from the fused quaternion
+  sigma       0.1599 deg over the recording
+  variance    7.787e-06 rad^2
+
+==============================================================
+MEASURED VALUES FOR THE DRIVER
+==============================================================
+
+Each is the worst axis, since the covariance is one number on
+the diagonal and has to cover the noisiest axis rather than the
+average.
+
+  angular_velocity_variance:    3.022e-06
+  linear_acceleration_variance: 4.844e-04
+
+Set them with:
+
+  ros2 launch bno085_driver bno085.launch.py \
+    --ros-args -p angular_velocity_variance:=3.022e-06 \
+               -p linear_acceleration_variance:=4.844e-04
+
+or edit the defaults in bno085_node.py.
+
+CAVEATS worth stating alongside these numbers:
+
+  These are the noise floor at rest, in this mounting, at this
+  temperature. Under vibration the true noise is higher, so
+  these are a lower bound rather than a worst case.
+
+  MEMS gyroscope bias drifts with temperature, so the bias
+  figures above hold for the conditions of this recording only.
+  The variance is more stable than the bias.
+
+  Heading sigma here is drift over a stationary run, not the
+  same quantity as the chip's per-reading accuracy estimate.
+  The driver publishes the chip's estimate for heading and uses
+  these measured figures for the gyroscope and accelerometer.

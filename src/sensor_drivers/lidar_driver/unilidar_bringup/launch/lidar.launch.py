@@ -54,7 +54,7 @@ def generate_launch_description():
         DeclareLaunchArgument('switch_to', default_value=''),
         DeclareLaunchArgument('serial_port', default_value='/dev/ttyACM0'),
         DeclareLaunchArgument('lidar_ip', default_value='192.168.1.62'),
-        DeclareLaunchArgument('local_ip', default_value='192.168.1.1'),
+        DeclareLaunchArgument('local_ip', default_value='192.168.1.2'),
         DeclareLaunchArgument('extra_mode_bits', default_value='0'),
         DeclareLaunchArgument('rviz', default_value='true'),
         OpaqueFunction(function=setup),
