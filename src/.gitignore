@@ -1,0 +1,21 @@
+# Core dumps
+core
+core.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# ROS / colcon
+build/
+install/
+log/
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.swp
+*~

@@ -23,6 +23,8 @@ def generate_launch_description():
         'map_server',
         'planner_server',
 	'controller_server',
+	'behavior_server',
+	'bt_navigator',
     ]
 
     return LaunchDescription([
@@ -54,6 +56,14 @@ def generate_launch_description():
             output='screen',
             parameters=[params_file]
         ),
+
+	Node(
+	    package='nav2_behaviors',
+	    executable='behavior_server',
+	    name='behavior_server',
+	    output='screen',
+	    parameters=[params_file]
+	),
 
         Node(
             package='nav2_bt_navigator',
