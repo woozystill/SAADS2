@@ -121,7 +121,7 @@ ekf_filter_node_odom:
                   false, false, false,
                   false, false, false,
                   false, false, true,
-                  false, false, false]
+                  true, false, false]
 
     imu0_queue_size: 20
 
@@ -131,7 +131,6 @@ ekf_filter_node_odom:
     imu0_relative: false
 
     imu0_remove_gravitational_acceleration: true
-
 
     # --------------------------------------------------------
     # PROCESS NOISE
@@ -276,7 +275,7 @@ ekf_filter_node_map:
                   false, false, true,
                   false, false, false,
                   false, false, true,
-                  false, false, false]
+                  true, false, false]
 
     imu0_queue_size: 20
 

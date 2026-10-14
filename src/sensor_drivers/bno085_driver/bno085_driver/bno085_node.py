@@ -158,7 +158,7 @@ class Bno085Node(Node):
         #
         # ACCELEROMETER, on. Chip default, stable, and not fused anyway.
         self.declare_parameter('calibrate_accelerometer', False)
-        self.declare_parameter('calibrate_gyroscope', False)
+        self.declare_parameter('calibrate_gyroscope', True)
         self.declare_parameter('calibrate_magnetometer', False)
 
         # Planar accelerometer calibration, for devices constrained to

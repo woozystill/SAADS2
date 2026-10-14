@@ -47,7 +47,7 @@ def generate_launch_description():
                 # hardware. Worth having, since gyroscope bias drifts
                 # with temperature and the odom EKF fuses yaw rate and
                 # nothing else.
-                'calibrate_gyroscope': False,
+                'calibrate_gyroscope': True,
 
                 # OFF, and this one is measured rather than inferred. A
                 # 947 m run with it enabled showed 84 degrees of heading

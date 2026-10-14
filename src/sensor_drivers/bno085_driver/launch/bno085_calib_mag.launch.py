@@ -57,6 +57,7 @@ def generate_launch_description():
                 # stream, calibration_status reads 0 forever no matter
                 # what the chip is actually doing.
                 'dynamic_calibration': True,
+                'calibrate_accelerometer': True,
                 'calibrate_magnetometer': True,
                 'enable_magnetometer': True,
                 'mag_report_interval_us': 20000,
