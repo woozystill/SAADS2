@@ -1,0 +1,82 @@
+bag                /home/saads/saads_ws/src/testing/sensor_validation/results/bags/localization_enh_02
+GPS fixes          1084
+segments           43  (min move 5.0 m)
+  used for fit     41  (2 corner segments excluded)
+distance walked    225.8 m
+GPS covariance     10.8 m^2 mean
+
+LOOP CLOSURE
+  GPS start to end   0.72 m
+  EKF start to end   0.71 m
+  as % of perimeter  0.3%
+
+HEADING OFFSET
+
+seg   course    IMU yaw     offset
+----------------------------------------
+1       272.5      262.1      -10.3
+2       271.7      251.8      -19.9
+3       254.9      246.7       -8.3
+4       276.3      298.7      +22.4
+5       313.6      330.8      +17.1   <- corner, excluded
+6       348.4       18.3      +29.9
+7       359.6       30.9      +31.3
+8       358.2       39.6      +41.4
+9       357.7       43.8      +46.1
+10      354.5       49.1      +54.5
+11        0.8       52.2      +51.4
+12      357.0       51.6      +54.7
+13        1.8       57.6      +55.7
+14        2.1       62.7      +60.7
+15       25.2      105.5      +80.3
+16       67.6      150.2      +82.6
+17       87.7      155.8      +68.1
+18       87.9      156.8      +68.9
+19       85.5      171.1      +85.6
+20       86.7      166.6      +79.9
+21       91.1      165.1      +74.1
+22       87.7      168.0      +80.3
+23       89.5      169.6      +80.1
+24       86.2      166.5      +80.3
+25       84.3      175.9      +91.6
+26      104.2      256.8     +152.6
+27      179.4      263.8      +84.5
+28      175.3      275.4     +100.1
+29      178.1      275.5      +97.3
+30      180.6      277.4      +96.8
+31      175.2      281.9     +106.7
+32      181.5      280.3      +98.8
+33      178.2      281.1     +102.9
+34      180.2      285.9     +105.7
+35      172.4      284.1     +111.7
+36      172.7      289.8     +117.1
+37      221.8       20.0     +158.2   <- corner, excluded
+38      264.8      346.4      +81.6
+39      268.1      344.7      +76.6
+40      257.9      338.5      +80.6
+41      271.2      344.1      +72.9
+42      270.9      344.6      +73.7
+43      265.6      348.4      +82.7
+
+constant fit       +71.31 deg,  RMS residual 34.31 deg
+sinusoid fit       amplitude 34.54 deg,  RMS residual 24.47 deg
+
+CONSTANT OFFSET - the sensor is behaving.
+
+The sinusoid fit is no better than a flat line, so the error
+does not depend on which way the robot faces. That rules out
+soft-iron distortion and nearby interference.
+
+The +71.3 deg is the angle between the IMU x-axis and
+the direction of travel - a mounting rotation, plus local
+magnetic declination. It changes whenever the sensor is
+physically moved, so it describes this mounting only.
+
+DO NOT put this into navsat_transform yaw_offset.
+That was tested directly: yaw_offset rotated the map frame by
+its own value regardless of the measured offset, so any
+non-zero setting skewed the track. Leave it at 0.0.
+
+What this number is good for: confirming the offset is
+constant, and telling you how far the sensor is rotated
+relative to the robot if you want to straighten the mounting.

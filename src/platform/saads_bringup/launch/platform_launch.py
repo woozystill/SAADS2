@@ -8,18 +8,15 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='base_to_lidar_tf',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'lidar_frame']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='base_to_imu_tf',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'imu_frame']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='base_to_gps_tf',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'gps_frame']
+            arguments=[
+                '--x', '0',
+                '--y', '0',
+                '--z', '0',
+                '--roll', '0',
+                '--pitch', '0',
+                '--yaw', '0',
+                '--frame-id', 'base_link',
+                '--child-frame-id', 'unilidar_lidar',
+            ],
         ),
     ])

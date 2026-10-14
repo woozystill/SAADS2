@@ -1,0 +1,3 @@
+[submodule "src/sensor_drivers/lidar_driver/unilidar_sdk2"]
+	url = https://github.com/unitreerobotics/unilidar_sdk2.git
+	path = src/sensor_drivers/lidar_driver/unilidar_sdk2

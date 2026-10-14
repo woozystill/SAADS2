@@ -1,0 +1,30 @@
+bag                localization_enh_02
+
+GPS, receiver-reported
+  fixes               1084  (0 with no fix)
+  1 sigma mean        3.26 m
+  1 sigma range       2.80 - 5.44 m
+  -> varies during the run; the filter weights each fix by it
+
+Global EKF position uncertainty
+  1 sigma mean        1.56 m
+  1 sigma range       1.35 - 2.02 m
+  -> sawtooth: grows between fixes, collapses when one arrives
+
+IMU heading uncertainty
+  1 sigma             6.23 deg, constant
+  -> hardcoded in the driver from the datasheet. Does NOT
+     adapt. If the magnetometer is disturbed by a motor, the
+     filter has no way to know it should trust heading less.
+     Named as a limitation, not a defect - adaptive IMU
+     covariance is future work.
+
+HOW THE FILTER USES THESE
+Each measurement is weighted by the inverse of its covariance, so
+a fix reported as 4 m accurate moves the estimate less than one
+reported as 1 m accurate. Nobody tunes this mid-run; it follows
+from the numbers the sensors publish.
+
+Between fixes the filter has no position measurement at all, so
+its uncertainty grows. Wheel odometry will slow that growth by
+supplying velocity at 50 Hz.

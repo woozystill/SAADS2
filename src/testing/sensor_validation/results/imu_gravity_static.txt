@@ -1,0 +1,19 @@
+imu_gravity_static
+2026-09-22T15:39:06
+============================================================
+positions        1
+duration each    60 s
+total samples    3051
+
+measured mean    9.5869 m/s^2
+expected         9.807 m/s^2
+error            -0.2201 m/s^2 (-2.24%)
+noise 1 sigma    0.0099 m/s^2
+
+MARGINAL
+
+A stationary accelerometer senses exactly one thing: the reaction
+to gravity. So the magnitude must equal 9.807 m/s^2, and any
+departure is scale or bias error. Consumer MEMS parts are
+typically specified to a few percent, so an error under 1% is a
+good result rather than a marginal one.

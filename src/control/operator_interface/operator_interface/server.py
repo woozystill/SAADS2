@@ -102,7 +102,6 @@ def main():
             app,
             host='0.0.0.0',
             port=5000,
-            allow_unsafe_werkzeug=True,
         )
     finally:
         ros_executor.shutdown()
