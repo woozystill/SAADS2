@@ -25,6 +25,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'sim_robot = nav_system.sim_robot:main',
+            'gps_waypoint_node = nav_system.gps_waypoint_node:main',
+	    'mission_supervisor = nav_system.mission_supervisor:main',
         ],
     },
 )
