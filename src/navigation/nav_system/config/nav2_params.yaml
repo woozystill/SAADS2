@@ -126,11 +126,28 @@ global_costmap:
       # Replace with verified SAADS dimensions before vehicle testing.
       robot_radius: 0.30
 
-      plugins: ["static_layer", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
 
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: unilidar
+
+        unilidar:
+          topic: /unilidar/cloud
+          data_type: "PointCloud2"
+          marking: true
+          clearing: true
+          obstacle_min_range: 0.1
+          obstacle_max_range: 4.0
+          raytrace_min_range: 0.1
+          raytrace_max_range: 5.0
+          min_obstacle_height: 0.10
+          max_obstacle_height: 1.6
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
