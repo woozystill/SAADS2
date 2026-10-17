@@ -1,4 +1,6 @@
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -13,11 +15,13 @@ def generate_launch_description():
         'nav2_params.yaml'
     )
 
-    map_file = os.path.join(
+    default_map = os.path.join(
         package_dir,
         'maps',
         'cil_test_map.yaml'
     )
+
+    map_file = LaunchConfiguration('map')
 
     lifecycle_nodes = [
         'map_server',
@@ -28,6 +32,11 @@ def generate_launch_description():
     ]
 
     return LaunchDescription([
+        DeclareLaunchArgument(
+            'map',
+            default_value=default_map,
+            description='Absolute path to the Nav2 occupancy map YAML'
+        ),
         Node(
             package='nav2_map_server',
             executable='map_server',
