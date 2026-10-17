@@ -326,6 +326,14 @@ navsat_transform:
     # 0 if IMU yaw is already ENU with zero facing east.
     # Verify experimentally.
     yaw_offset: 0.0
+    # Pinned for simulation so the map frame equals the
+    # simulator world frame. Deriving it from the first fix
+    # drifts while the robot turns. Revert for field runs.
+    # SIMULATION ONLY - uncomment this line AND set
+    # wait_for_datum: true below, to pin the map frame to
+    # the simulator world origin. Field runs derive the
+    # datum from the first GPS fix instead.
+    # datum: [32.2319, -110.9501, 0.0]
 
     zero_altitude: true
 
@@ -340,4 +348,6 @@ navsat_transform:
     use_odometry_yaw: false
 
     # First valid GPS fix establishes the datum.
+    # true makes the datum parameter above take effect. With false,
+    # navsat ignores it and uses the first GPS fix instead.
     wait_for_datum: false
