@@ -99,6 +99,10 @@ class GpsWaypointNode(Node):
         self.create_subscription(Empty, 'go_home', self.on_go_home, 10)
         self.create_subscription(Empty, 'set_home', self.on_set_home, 10)
         self.create_subscription(Empty, 'goal_cancel', self.on_cancel, 10)
+        self.create_subscription(
+            String, '/mission/navigation_cancel',
+            self.on_mission_cancel, 10
+        )
 
         self._goal_handle = None
         self._home = None
@@ -484,6 +488,26 @@ class GpsWaypointNode(Node):
 
         self._goal_handle = None
 
+
+    def on_mission_cancel(self, msg):
+        mission = self._active_mission_goal
+
+        if mission is None:
+            self.get_logger().warn(
+                'Mission cancellation ignored: no active mission goal.'
+            )
+            return
+
+        if msg.data != mission['mission_id']:
+            self.get_logger().warn(
+                'Mission cancellation ignored: mission ID mismatch.'
+            )
+            return
+
+        self.get_logger().warn(
+            'Mission cancellation authorized for active mission goal.'
+        )
+        self.on_cancel(None)
 
     def on_cancel(self, _msg):
         if self._goal_pending:

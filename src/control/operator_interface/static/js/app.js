@@ -9,6 +9,7 @@ const missionState = document.getElementById('mission-state');
 const missionMessage = document.getElementById('mission-message');
 const sendMissionButton = document.getElementById('send-mission-destination');
 const confirmDeliveryButton = document.getElementById('confirm-delivery');
+const cancelMissionButton = document.getElementById('cancel-mission');
 
 sendMissionButton.addEventListener('click', () => {
     const latitude = Number(missionLatitude.value);
@@ -44,11 +45,25 @@ confirmDeliveryButton.addEventListener('click', () => {
     missionMessage.textContent = 'Delivery confirmation submitted.';
 });
 
+cancelMissionButton.addEventListener('click', () => {
+    if (!['DELIVERING', 'RETURNING_HOME', 'ARRIVAL_CONFIRMATION'].includes(
+        missionState.textContent
+    )) return;
+    if (!window.confirm('Request cancellation of the current mission?')) return;
+    cancelMissionButton.disabled = true;
+    socket.emit('cancel_mission');
+    missionMessage.textContent =
+        'Cancellation requested. Vehicle stop is NOT confirmed.';
+});
+
 socket.on('mission_status', (data) => {
     missionState.textContent = data.state;
 
     confirmDeliveryButton.disabled =
         data.state !== 'ARRIVAL_CONFIRMATION';
+    cancelMissionButton.disabled = ![
+        'DELIVERING', 'RETURNING_HOME', 'ARRIVAL_CONFIRMATION'
+    ].includes(data.state);
 });
 
 socket.on('mission_message', (data) => {
@@ -58,6 +73,7 @@ socket.on('mission_message', (data) => {
 socket.on('disconnect', () => {
     missionState.textContent = 'DISCONNECTED';
     confirmDeliveryButton.disabled = true;
+    cancelMissionButton.disabled = true;
 });
 
 // Dashboard tab switching (display only)

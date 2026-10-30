@@ -78,6 +78,10 @@ class OperatorROSInterface(Node):
             10
         )
 
+        self.mission_cancel_pub = self.create_publisher(
+            Bool, '/mission/cancel', 10
+        )
+
         self.delivery_confirmation_pub = self.create_publisher(
             Bool,
             '/mission/delivery_confirmed',
@@ -291,6 +295,16 @@ class OperatorROSInterface(Node):
             'latitude': latitude,
             'longitude': longitude,
         }
+
+    def cancel_mission(self):
+        """Request cancellation through the Mission Supervisor."""
+        if self.current_mission_state not in (
+            'DELIVERING', 'RETURNING_HOME', 'ARRIVAL_CONFIRMATION'
+        ):
+            return False
+        self.mission_cancel_pub.publish(Bool(data=True))
+        self.report_status('Mission cancellation requested; awaiting status.')
+        return True
 
     def confirm_delivery(self):
         """Notify the Mission Supervisor that delivery is confirmed."""

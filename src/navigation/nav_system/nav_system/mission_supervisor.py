@@ -10,6 +10,7 @@ with gps_waypoint_node has been implemented and tested.
 from enum import Enum
 import json
 import math
+import time
 import uuid
 
 import rclpy
@@ -38,6 +39,9 @@ class MissionSupervisor(Node):
         self.mission_id = None
         self.expected_goal_type = None
         self.navigation_dispatch_enabled = False
+        self.cancel_pending = False
+        self.cancel_timeout_seconds = 10.0
+        self.cancel_deadline = None
 
         self.status_pub = self.create_publisher(
             String, "/mission/status", 10
@@ -51,8 +55,10 @@ class MissionSupervisor(Node):
         )
 
         self.nav_command_pub = self.create_publisher(String, "/mission/navigation_command", 10)
+        self.nav_cancel_pub = self.create_publisher(String, "/mission/navigation_cancel", 10)
         self.create_subscription(String, "/mission/navigation_result", self.on_navigation_result, 10)
         self.create_subscription(Bool, "/mission/delivery_confirmed", self.on_delivery_confirmed, 10)
+        self.create_subscription(Bool, "/mission/cancel", self.on_cancel, 10)
         self.create_timer(1.0, self.publish_status)
 
         self.get_logger().info(
@@ -124,6 +130,15 @@ class MissionSupervisor(Node):
             return
 
         status = result["status"]
+        if self.cancel_pending:
+            self.cancel_pending = False
+            self.cancel_deadline = None
+            self.expected_goal_type = None
+            self.get_logger().warn("Navigation ended after cancellation was requested. Mission entering FAIL_SAFE.")
+            self.set_state(MissionState.FAIL_SAFE)
+            return
+
+
         if self.state == MissionState.DELIVERING:
             self.expected_goal_type = None
             if status == "GOAL_SUCCEEDED":
@@ -148,7 +163,37 @@ class MissionSupervisor(Node):
         command.data = json.dumps(payload)
         self.nav_command_pub.publish(command)
 
+    def on_cancel(self, msg):
+        if not msg.data:
+            return
+
+        if self.state == MissionState.ARRIVAL_CONFIRMATION:
+            self.get_logger().warn("Mission canceled while awaiting delivery confirmation")
+            self.expected_goal_type = None
+            self.set_state(MissionState.FAIL_SAFE)
+            return
+
+        if self.state not in (MissionState.DELIVERING, MissionState.RETURNING_HOME,):
+            self.get_logger().warn("Cancellation ignored: no active navigation mission.")
+            return
+
+        if self.cancel_pending:
+            self.get_logger().warn("Mission cancellation already pending.")
+            return
+        self.cancel_pending = True
+        self.cancel_deadline = time.monotonic() + self.cancel_timeout_seconds
+
+        cancel_msg = String()
+        cancel_msg.data = self.mission_id
+        self.nav_cancel_pub.publish(cancel_msg)
+
+        self.get_logger().warn("Mission cancellation requested; awaiting navigation result.")
+
     def on_delivery_confirmed(self, msg):
+        if self.cancel_pending:
+            self.get_logger().warn("Delivery confirmation ignored: mission cancellation pending.")
+            return
+
         if self.state != MissionState.ARRIVAL_CONFIRMATION:
             self.get_logger().warn("Delivery confirmation ignored: not awaiting confirmation.")
             return
@@ -159,7 +204,21 @@ class MissionSupervisor(Node):
         self.set_state(MissionState.RETURNING_HOME)
         self.dispatch_navigation("RTB", None)
 
+    def check_cancel_timeout(self):
+        if not self.cancel_pending or self.cancel_deadline is None:
+            return
+
+        if time.monotonic() < self.cancel_deadline:
+            return
+
+        self.cancel_deadline = None
+        self.get_logger().error(
+            "Mission cancellation timed out. Navigation stop is NOT confirmed."
+        )
+        self.set_state(MissionState.FAIL_SAFE)
+
     def publish_status(self):
+        self.check_cancel_timeout()
         msg = String()
         msg.data = self.state.value
         self.status_pub.publish(msg)

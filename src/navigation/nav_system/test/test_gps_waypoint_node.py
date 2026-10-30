@@ -291,3 +291,35 @@ def test_final_canceled_navigation_result():
     finally:
         node.destroy_node()
         rclpy.shutdown()
+
+
+def test_mission_specific_cancellation():
+    from unittest.mock import Mock
+
+    rclpy.init()
+    node = GpsWaypointNode()
+
+    try:
+        node.on_cancel = Mock()
+
+        # No active mission: cancellation must be ignored.
+        node.on_mission_cancel(String(data="mission-001"))
+        node.on_cancel.assert_not_called()
+
+        node._active_mission_goal = {
+            "mission_id": "mission-001",
+            "goal_type": "DELIVERY",
+            "goal_handle": None,
+        }
+
+        # Incorrect mission ID: cancellation must be rejected.
+        node.on_mission_cancel(String(data="wrong-mission"))
+        node.on_cancel.assert_not_called()
+
+        # Matching mission ID: cancellation is authorized.
+        node.on_mission_cancel(String(data="mission-001"))
+        node.on_cancel.assert_called_once_with(None)
+
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()

@@ -53,6 +53,19 @@ def handle_mission_destination(data):
             {'message': 'Invalid GPS destination.'},
         )
 
+@socketio.on('cancel_mission')
+def handle_cancel_mission():
+    """Forward a cancellation request to the Mission Supervisor."""
+    accepted = ros_interface.cancel_mission()
+    socketio.emit(
+        'mission_message',
+        {'message': (
+            'Cancellation requested; stop not yet confirmed.'
+            if accepted else 'No active mission available to cancel.'
+        )},
+        to=request.sid,
+    )
+
 @socketio.on('confirm_delivery')
 def handle_confirm_delivery():
     """Forward operator delivery confirmation to ROS 2."""
