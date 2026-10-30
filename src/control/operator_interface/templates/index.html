@@ -3,71 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>SAADS Operator Control</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/vendor/maplibre/maplibre-gl.css">
+    <title>SAADS | Operator Interface</title>
 </head>
-
 <body>
-    <h1>SAADS Operator Control</h1>
+    <div class="dashboard">
 
-    <p>Web Operator Interface: ONLINE</p>
+        <header class="topbar">
+            <div class="branding">
+                <h1>SAADS <span>| Operator Interface</span></h1>
 
-    <hr>
+            </div>
+            <div class="header-status">
+                <div class="status-card">
+                    <span class="status-icon">▣</span>
+                    <div><small>Battery</small><strong>-- V | --%</strong></div>
+                </div>
+                <div class="status-card">
+                    <span class="status-icon">◉</span>
+                    <div><small>RF link</small><strong>Unknown</strong></div>
+                </div>
+                <div class="status-card">
+                    <span class="status-icon">◆</span>
+                    <div><small>GPS</small><strong id="gps-status">No Data</strong></div>
+                </div>
+                <div class="status-card">
+                    <span class="status-icon">⚙</span>
+                    <div><small>Mode</small><strong>Unknown</strong></div>
+                </div>
+            </div>
+        </header>
 
-    <h2>Mission Control</h2>
+        <main class="main-display">
+            <section class="panel map-panel">
+                <h2>Offline GPS Map</h2>
+                <div class="map-container">
+                    <div id="offline-map" aria-label="Offline GPS map"></div>
+                    <div class="map-legend">
+                        <div><span class="legend-line"></span> Traveled route</div>
+                        <div><span class="legend-planned-line"></span> Planned route</div>
+                        <div><span class="legend-dot"></span> Waypoint (destination)</div>
+                        <div><span class="legend-arrow">➤</span> SAADS (position + heading)</div>
+                        <div><span class="legend-arrow">●</span> SAADS (position only)</div>
+                    </div>
+                    <div class="map-controls">
+                        <button type="button" id="map-recenter" title="Recenter map">⌖</button>
+                        <button type="button" id="map-zoom-in" title="Zoom in">+</button>
+                        <button type="button" id="map-zoom-out" title="Zoom out">−</button>
+                    </div>
+                </div>
+            </section>
 
-    <div>
-        <label for="goal-x">Goal X (m):</label>
-        <input
-            id="goal-x"
-            type="number"
-            step="0.1"
-            value="3.0"
-        >
+            <div class="camera-column">
+                <section class="panel camera-panel">
+                    <div class="panel-heading">
+                        <h2>Front Camera</h2>
+                        <span class="camera-status">Feed unavailable</span>
+                    </div>
+                    <div class="camera-placeholder">Front camera feed pending</div>
+                </section>
+                <section class="panel camera-panel">
+                    <div class="panel-heading">
+                        <h2>Rear Camera</h2>
+                        <span class="camera-status">Feed unavailable</span>
+                    </div>
+                    <div class="camera-placeholder">Rear camera feed pending</div>
+                </section>
+            </div>
+        </main>
+
+        <section class="alert-bar" aria-label="System alerts">
+            <div class="alert-summary">
+                <strong>⚠ SYSTEM ALERTS</strong>
+                <span id="alert-message" role="status" aria-live="polite">
+                    Alert monitoring not yet connected.
+                </span>
+            </div>
+            <div class="alert-actions">
+                <span id="alert-severity">MONITORING PENDING</span>
+                <button type="button" id="alert-audio" disabled>🔇 Audio unavailable</button>
+            </div>
+        </section>
+
+        <nav class="control-bar" aria-label="Dashboard controls">
+            <div class="dashboard-tabs">
+                <button type="button" class="tab active" data-tab="overview">Overview</button>
+                <button type="button" class="tab" data-tab="drive">Drive</button>
+                <button type="button" class="tab" data-tab="motor">Motor Testing</button>
+            </div>
+            <div class="command-mode">
+                <strong>COMMAND MODE</strong>
+                <div class="mode-switch">
+                    <button type="button" class="selected" disabled>Manual</button>
+                    <button type="button" disabled>Autonomous</button>
+                </div>
+            </div>
+            <span class="mode-indicator">● Mode status unavailable</span>
+        </nav>
+
+        <section class="bottom-dashboard">
+            <div class="panel drive-panel">
+                <h3>Keyboard Drive</h3>
+                <span class="control-status">Keyboard control unavailable</span>
+                <div class="drive-content">
+                    <div class="drive-settings">
+                        <label>Drive % <input type="range" disabled value="20"> 20%</label>
+                        <label>Turn % <input type="range" disabled value="10"> 10%</label>
+                    </div>
+                    <div class="direction-pad">
+                        <button type="button" disabled>↑</button>
+                        <div>
+                            <button type="button" disabled>←</button>
+                            <button type="button" disabled>↓</button>
+                            <button type="button" disabled>→</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel motor-panel">
+                <h3>Motor Telemetry</h3>
+                <p>Front Left <strong>-- RPM</strong></p>
+                <p>Front Right <strong>-- RPM</strong></p>
+                <p>Rear Left <strong>-- RPM</strong></p>
+                <p>Rear Right <strong>-- RPM</strong></p>
+            </div>
+
+            <div class="panel command-panel">
+                <h3>Current Command</h3>
+                <div class="command-values">
+                    <div>Front Left <strong>--%</strong></div>
+                    <div>Front Right <strong>--%</strong></div>
+                    <div>Rear Left <strong>--%</strong></div>
+                    <div>Rear Right <strong>--%</strong></div>
+                </div>
+                <div class="command-buttons">
+                    <button type="button" disabled>ARM REMOTE CONTROL</button>
+                    <button type="button" disabled>ZERO COMMAND</button>
+                    <button type="button" disabled>STOP ALL</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel mission-panel">
+            <h2>Autonomous GPS Mission</h2>
+            <p>Mission State: <strong id="mission-state">UNKNOWN</strong></p>
+            <div class="mission-inputs">
+                <label for="mission-latitude">Destination Latitude
+                    <input id="mission-latitude" type="number"
+                           min="-90" max="90" step="any" placeholder="Latitude">
+                </label>
+                <label for="mission-longitude">Destination Longitude
+
+                    <input id="mission-longitude" type="number"
+                           min="-180" max="180" step="any" placeholder="Longitude">
+                </label>
+            </div>
+
+            <div class="mission-buttons">
+                <button id="send-mission-destination" type="button">
+                    Send Destination
+                </button>
+                <button id="confirm-delivery" type="button" disabled>
+                    Confirm Delivery
+                </button>
+            </div>
+
+            <p id="mission-message">Mission interface ready.</p>
+            <p class="safety-notice">
+                Autonomous mission commands require an authorized mission supervisor.
+            </p>
+        </section>
+
+
+
     </div>
 
-    <div>
-        <label for="goal-y">Goal Y (m):</label>
-        <input
-            id="goal-y"
-            type="number"
-            step="0.1"
-            value="0.0"
-        >
-    </div>
-
-    <br>
-
-    <button id="send-goal">
-        Send Goal
-    </button>
-
-    <button id="cancel-goal">
-        Cancel Goal
-    </button>
-
-    <hr>
-
-    <h2>Navigation Status</h2>
-
-    <p>
-        Status:
-        <span id="navigation-status">
-            Waiting for command...
-        </span>
-    </p>
-
-    <p>
-        Distance to Goal:
-        <span id="distance-to-goal">--</span> m
-    </p>
-
-    <p>
-        Speed:
-        <span id="navigation-speed">--</span> m/s
-    </p>
-
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script src="/static/vendor/pmtiles/pmtiles.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script type="module" src="/static/js/offline_map.js"></script>
 </body>
 </html>

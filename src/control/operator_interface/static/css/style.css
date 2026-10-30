@@ -1,0 +1,626 @@
+:root {
+    --bg: #081326;
+    --panel: #102139;
+    --panel-light: #172b46;
+    --border: #304766;
+    --text: #e8f0ff;
+    --muted: #aec7ea;
+    --blue: #1769ff;
+    --green: #16d77a;
+    --red: #f52222;
+    --radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 12px 18px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.dashboard {
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+/* Header */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.branding {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.branding h1 {
+    margin: 0;
+    font-size: 30px;
+    white-space: nowrap;
+}
+
+.branding h1 span {
+    font-size: 25px;
+    font-weight: 500;
+}
+
+.concept-label {
+    padding: 9px 12px;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.header-status {
+    display: flex;
+    gap: 10px;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 140px;
+    padding: 10px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.status-card small,
+.status-card strong {
+    display: block;
+}
+
+.status-card small {
+    margin-bottom: 4px;
+    color: var(--muted);
+}
+
+.status-icon {
+    color: var(--green);
+    font-size: 25px;
+}
+
+/* Shared panels */
+
+.panel {
+    min-width: 0;
+    padding: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.panel h2,
+.panel h3 {
+    margin: 0 0 10px;
+}
+
+.panel h2 {
+    font-size: 22px;
+}
+
+.panel h3 {
+    font-size: 17px;
+}
+
+/* Map and camera layout */
+
+.main-display {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 8px;
+}
+
+.map-container {
+    position: relative;
+    height: 480px;
+    overflow: hidden;
+    background: #152d38;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.map-placeholder {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+}
+
+.placeholder-icon {
+    font-size: 60px;
+}
+
+.map-legend {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 12px;
+    background: rgba(8, 19, 38, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.map-legend div {
+    margin: 7px 0;
+}
+
+.legend-line,
+.legend-dot {
+    display: inline-block;
+    margin-right: 8px;
+    background: var(--blue);
+}
+
+.legend-line {
+    width: 22px;
+    height: 3px;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-arrow {
+    margin-right: 8px;
+    color: white;
+}
+
+.map-controls {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.map-controls button {
+    padding: 12px;
+    background: var(--panel-light);
+    color: white;
+    border: 1px solid var(--border);
+}
+
+.camera-column {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+}
+
+.camera-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.camera-status {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.camera-placeholder {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+
+    background: #182e46;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+}
+
+/* System alerts */
+
+.alert-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 8px 0;
+    padding: 10px 14px;
+    background: #302919;
+    border: 1px solid #9d762e;
+    border-radius: 8px;
+}
+
+.alert-summary,
+.alert-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.alert-summary strong {
+    color: #ffca63;
+}
+
+.alert-bar button {
+    padding: 6px 10px;
+    background: var(--panel-light);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* Tabs and Command Mode */
+
+.control-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.dashboard-tabs,
+.command-mode,
+.mode-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-tabs button,
+.mode-switch button {
+    padding: 10px 18px;
+    background: var(--panel);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.dashboard-tabs .active,
+.mode-switch .selected {
+    background: var(--blue);
+    color: white;
+}
+
+.command-mode {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.command-mode strong {
+    font-size: 13px;
+}
+
+.mode-indicator {
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* Lower dashboard */
+
+.bottom-dashboard {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1.9fr;
+    gap: 8px;
+}
+
+.control-status {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.drive-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-top: 12px;
+}
+
+.drive-settings {
+    display: grid;
+    gap: 20px;
+}
+
+.drive-settings label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.direction-pad {
+    text-align: center;
+}
+
+.direction-pad button {
+    padding: 12px 18px;
+    margin: 2px;
+    background: var(--panel-light);
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.motor-panel p {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+}
+
+.motor-panel strong {
+    color: var(--text);
+}
+
+/* Current Command panel */
+
+.command-panel {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+}
+
+.command-panel h3 {
+    grid-column: 1 / -1;
+}
+
+.command-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.command-values div {
+    padding: 10px;
+    text-align: center;
+    background: var(--panel-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+}
+
+.command-values strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--text);
+    font-size: 22px;
+}
+
+.command-buttons {
+    display: grid;
+    gap: 6px;
+}
+
+.command-buttons button {
+    padding: 10px;
+    background: var(--panel-light);
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+/* Mission and testing sections */
+
+.mission-panel,
+.testing-panel {
+    margin-top: 12px;
+}
+
+.mission-inputs,
+.testing-inputs,
+.mission-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+}
+
+.mission-inputs label,
+.testing-inputs label {
+    display: grid;
+    gap: 6px;
+    color: var(--muted);
+}
+
+.mission-panel input,
+.testing-panel input {
+    padding: 10px;
+    background: var(--panel-light);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.mission-panel button,
+.testing-panel button {
+    padding: 10px 16px;
+    margin-right: 8px;
+    background: var(--blue);
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+.safety-notice {
+    color: #ffca63;
+}
+
+/* Responsive dashboard layout */
+
+@media (max-width: 1150px) {
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .header-status {
+        flex-wrap: wrap;
+    }
+
+    .control-bar {
+        flex-wrap: wrap;
+    }
+
+    .main-display {
+        grid-template-columns: 1fr;
+    }
+
+    .camera-column {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+    }
+
+    .bottom-dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .alert-bar {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 700px) {
+    body {
+        padding: 10px;
+    }
+
+    .branding {
+        flex-wrap: wrap;
+    }
+
+    .branding h1 {
+        font-size: 24px;
+    }
+
+    .camera-column {
+        grid-template-columns: 1fr;
+    }
+
+    .map-container {
+        height: 350px;
+    }
+
+    .dashboard-tabs {
+        flex-wrap: wrap;
+    }
+
+    .drive-content {
+        flex-wrap: wrap;
+    }
+
+    .command-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Hide inactive dashboard panels */
+[hidden] {
+    display: none !important;
+}
+
+/* Adaptive layout for dashboard tabs */
+.bottom-dashboard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bottom-dashboard:has(.drive-panel:not([hidden])):has(.command-panel:not([hidden])):has(.motor-panel[hidden]) {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+.bottom-dashboard:has(.motor-panel:not([hidden])):has(.drive-panel[hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.bottom-dashboard > [hidden] {
+    display: none !important;
+}
+
+@media (max-width: 1150px) {
+    .bottom-dashboard {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Offline MapLibre display */
+#offline-map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.map-legend,
+.map-controls {
+    z-index: 2;
+}
+
+/* Offline GPS map distance scale */
+#offline-map .maplibregl-ctrl-bottom-left {
+    left: 10px;
+    bottom: 10px;
+}
+
+#offline-map .maplibregl-ctrl-scale {
+    background: rgba(8, 19, 38, 0.88);
+    color: #e0eaf2;
+    border: 1px solid #8da9ba;
+    border-top: none;
+    border-radius: 0 0 3px 3px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Nav2 planned path: orange dashed line. */
+.legend-planned-line {
+    display: inline-block;
+    width: 22px;
+    height: 0;
+    margin-right: 8px;
+    border-top: 3px dashed #ffad42;
+    vertical-align: middle;
+}

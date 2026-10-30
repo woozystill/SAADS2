@@ -27,6 +27,17 @@ setup(
             os.path.join('share', package_name, 'static', 'js'),
             glob('static/js/*'),
         ),
+        *[
+            (
+                os.path.join('share', package_name, os.path.dirname(path)),
+                [path],
+            )
+            for path in glob('static/maps/**/*', recursive=True)
+                      + glob('static/map_styles/**/*', recursive=True)
+                      + glob('static/vendor/**/*', recursive=True)
+		      + glob('static/fonts/**/*', recursive=True)
+            if os.path.isfile(path)
+        ],
     ],
     install_requires=['setuptools'],
     zip_safe=True,
